@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JEE ADVANCE TEST 1</title>
+    <style>
+        :root {
+            --primary-color: #337ab7;
+            --not-visited: #e0e0e0;
+            --not-answered: #ff4d4d;
+            --answered: #2ecc71;
+            --marked: #9b59b6;
+            --marked-answered: #8e44ad;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background-color: #f5f5f5;
+        }
+
+        header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* --- LOGIN POPUP --- */
+        .login-overlay {
+            position: fixed;
+            top:0; left:0; width:100%; height:100%;
+            background: rgba(44, 62, 80, 0.95);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        .login-box {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        .login-box input {
+            padding: 10px;
+            width: 250px;
+            font-size: 16px;
+            margin: 15px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .exam-area {
+            flex: 3;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            background: white;
+        }
+
+        .subject-tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #ccc;
+            padding-bottom: 5px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background: #e0e0e0;
+            border: none;
+            font-weight: bold;
+        }
+
+        .tab.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .question-container {
+            flex: 1;
+        }
+
+        .question-image img {
+            max-width: 100%;
+            max-height: 350px;
+            height: auto;
+            border: 1px solid #ddd;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .options-container {
+            margin-top: 15px;
+            background: #fafafa;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .option-item {
+            margin: 15px 0;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .option-img {
+            max-height: 80px;
+            max-width: 80%;
+            height: auto;
+            border: 1px solid #eee;
+            background: white;
+            padding: 3px;
+        }
+
+        .numerical-input {
+            padding: 8px;
+            font-size: 16px;
+            width: 150px;
+            border: 1px solid #ccc;
+        }
+
+        .action-buttons {
+            margin-top: 30px;
+            display: flex;
+            gap: 10px;
+            border-top: 1px solid #ddd;
+            padding-top: 15px;
+        }
+
+        button.btn {
+            padding: 10px 15px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 3px;
+        }
+
+        .btn-save { background: #2ecc71; color: white; }
+        .btn-clear { background: #e74c3c; color: white; }
+        .btn-mark { background: #f39c12; color: white; }
+
+        .sidebar {
+            flex: 1;
+            background: #eaeded;
+            border-left: 2px solid #ccc;
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+            min-width: 300px;
+        }
+
+        .legend {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            font-size: 12px;
+            padding: 15px 0;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .legend-item { display: flex; align-items: center; gap: 5px; }
+        .box { width: 20px; height: 20px; border-radius: 3px; display: inline-block;}
+
+        .palette-container {
+            flex: 1;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+
+        .palette-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .p-btn {
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #ccc;
+            cursor: pointer;
+            font-weight: bold;
+            background: var(--not-visited);
+            border-radius: 4px;
+        }
+
+        .p-not-visited { background-color: var(--not-visited); }
+        .p-not-answered { background-color: var(--not-answered); color: white; }
+        .p-answered { background-color: var(--answered); color: white; }
+        .p-marked { background-color: var(--marked); color: white; }
+        .p-marked-answered { background-color: var(--marked-answered); color: white; position: relative;}
+        .p-marked-answered::after {
+            content: "?"; position: absolute; bottom: 1px; right: 3px; font-size: 10px; color: #2ecc71;
+        }
+
+        .submit-panel {
+            margin-top: auto;
+            padding-top: 15px;
+        }
+        .btn-submit { width: 100%; background: #2c3e50; color: white; padding: 12px; font-size: 16px;}
+
+        /* --- REPORT CARD STYLES --- */
+        .report-wrapper {
+            max-width: 900px;
+            margin: 30px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            font-family: sans-serif;
+        }
+        .stats-table, .breakdown-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .stats-table th, .stats-table td, .breakdown-table th, .breakdown-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+        }
+        .stats-table th { background-color: #2c3e50; color: white; }
+        .breakdown-table th { background-color: #f2f2f2; }
+        .text-correct { color: #2ecc71; font-weight: bold; }
+        .text-wrong { color: #e74c3c; font-weight: bold; }
+        .text-partial { color: #f39c12; font-weight: bold; }
+        .text-unattempted { color: #7f8c8d; font-style: italic; }
+    </style>
+</head>
+<body>
+
+    <div id="login-screen" class="login-overlay">
+        <div class="login-box">
+            <h2 style="color: #2c3e50; margin-top:0;">JEE ADVANCE TEST 1</h2>
+            <p>Please enter your Full Name to start the test:</p>
+            <input type="text" id="student-name" placeholder="Candidate Name..." required autocomplete="off"><br>
+            <button class="btn btn-save" style="padding: 12px 30px; font-size:16px;" onclick="startExam()">Start Examination</button>
+        </div>
+    </div>
+
+    <header>
+        <h2>JEE ADVANCE TEST 1</h2>
+        <div id="timer" style="font-size: 20px; font-weight: bold;">Time Left: 03:00:00</div>
+    </header>
+
+    <div class="main-container" id="exam-viewport">
+        <div class="exam-area">
+            <div class="subject-tabs">
+                <button class="tab id-tab-Physics active" onclick="switchSubject('Physics')">Physics</button>
+                <button class="tab" style="cursor: not-allowed; opacity: 0.6;">Chemistry (Locked)</button>
+                <button class="tab id-tab-Maths" onclick="switchSubject('Maths')">Mathematics</button>
+            </div>
+            
+            <h3 id="section-title">Section</h3>
+            <div class="question-container">
+                <div id="question-info" style="font-weight: bold; margin-bottom: 10px;">Question No. 1</div>
+                <div class="question-image">
+                    <img id="q-img" src="" alt="Question Load Error">
+                </div>
+                
+                <div class="options-container" id="options-block"></div>
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn btn-mark" onclick="markForReview()">Mark for Review & Next</button>
+                <button class="btn btn-clear" onclick="clearResponse()">Clear Response</button>
+                <button class="btn btn-save" onclick="saveAndNext()">Save & Next</button>
+            </div>
+        </div>
+
+        <div class="sidebar">
+            <div style="border-bottom: 1px solid #ccc; padding-bottom: 10px;">
+                <h3>Question Palette</h3>
+            </div>
+            <div class="legend">
+                <div class="legend-item"><span class="box p-not-visited"></span> Not Visited</div>
+                <div class="legend-item"><span class="box p-not-answered"></span> Not Answered</div>
+                <div class="legend-item"><span class="box p-answered"></span> Answered</div>
+                <div class="legend-item"><span class="box p-marked"></span> Marked for Review</div>
+                <div class="legend-item" style="grid-column: span 2;"><span class="box p-marked-answered"></span> Answered & Marked for Review</div>
+            </div>
+
+            <div class="palette-container">
+                <div class="palette-grid" id="palette-box"></div>
+            </div>
+
+            <div class="submit-panel">
+                <button class="btn btn-submit" onclick="finalSubmit()">Submit Exam</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const testQuestions = [
+            // ==================== PHYSICS SUBJECT (1 TO 18) ====================
+            { subject: 'Physics', type: 'SCQ', localNum: 1, questionImg: 'physics_q1.png', optionsImg: ['physics_q1ansA.png', 'physics_q1ansB.png', 'physics_q1ansC.png', 'physics_q1ansD.png'], correctAnswer: 'C' },
+            { subject: 'Physics', type: 'SCQ', localNum: 2, questionImg: 'physics_q2.png', optionsImg: ['physics_q2ansA.png', 'physics_q2ansB.png', 'physics_q2ansC.png', 'physics_q2ansD.png'], correctAnswer: 'B' },
+            { subject: 'Physics', type: 'SCQ', localNum: 3, questionImg: 'physics_q3.png', optionsImg: ['physics_q3ansA.png', 'physics_q3ansB.png', 'physics_q3ansC.png', 'physics_q3ansD.png'], correctAnswer: 'B' },
+            { subject: 'Physics', type: 'SCQ', localNum: 4, questionImg: 'physics_q4.png', optionsImg: ['physics_q4ansA.png', 'physics_q4ansB.png', 'physics_q4ansC.png', 'physics_q4ansD.png'], correctAnswer: 'C' },
+            { subject: 'Physics', type: 'SCQ', localNum: 5, questionImg: 'physics_q5.png', optionsImg: ['physics_q5ansA.png', 'physics_q5ansB.png', 'physics_q5ansC.png', 'physics_q5ansD.png'], correctAnswer: 'A' },
+            { subject: 'Physics', type: 'SCQ', localNum: 6, questionImg: 'physics_q6.png', optionsImg: ['physics_q6ansA.png', 'physics_q6ansB.png', 'physics_q6ansC.png', 'physics_q6ansD.png'], correctAnswer: 'D' },
+
+            { subject: 'Physics', type: 'MCQ', localNum: 7, questionImg: 'physics_q7.png', optionsImg: ['physics_q7ansA.png', 'physics_q7ansB.png', 'physics_q7ansC.png', 'physics_q7ansD.png'], correctAnswer: ['A', 'B', 'C'] },
+            { subject: 'Physics', type: 'MCQ', localNum: 8, questionImg: 'physics_q8.png', optionsImg: ['physics_q8ansA.png', 'physics_q8ansB.png', 'physics_q8ansC.png', 'physics_q8ansD.png'], correctAnswer: ['A', 'B', 'C'] },
+            { subject: 'Physics', type: 'MCQ', localNum: 9, questionImg: 'physics_q9.png', optionsImg: ['physics_q9ansA.png', 'physics_q9ansB.png', 'physics_q9ansC.png', 'physics_q9ansD.png'], correctAnswer: ['B', 'D'] },
+            { subject: 'Physics', type: 'MCQ', localNum: 10, questionImg: 'physics_q10.png', optionsImg: ['physics_q10ansA.png', 'physics_q10ansB.png', 'physics_q10ansC.png', 'physics_q10ansD.png'], correctAnswer: ['A', 'B', 'D'] },
+            { subject: 'Physics', type: 'MCQ', localNum: 11, questionImg: 'physics_q11.png', optionsImg: ['physics_q11ansA.png', 'physics_q11ansB.png', 'physics_q11ansC.png', 'physics_q11ansD.png'], correctAnswer: ['A', 'C', 'D'] },
+            { subject: 'Physics', type: 'MCQ', localNum: 12, questionImg: 'physics_q12.png', optionsImg: ['physics_q12ansA.png', 'physics_q12ansB.png', 'physics_q12ansC.png', 'physics_q12ansD.png'], correctAnswer: ['A', 'D'] },
+
+            { subject: 'Physics', type: 'NAT', localNum: 13, questionImg: 'physics_q13.png', optionsImg: [], correctAnswer: '3' },
+            { subject: 'Physics', type: 'NAT', localNum: 14, questionImg: 'physics_q14.png', optionsImg: [], correctAnswer: '2' },
+            { subject: 'Physics', type: 'NAT', localNum: 15, questionImg: 'physics_q15.png', optionsImg: [], correctAnswer: '54' },
+            { subject: 'Physics', type: 'NAT', localNum: 16, questionImg: 'physics_q16.png', optionsImg: [], correctAnswer: '18' },
+            { subject: 'Physics', type: 'NAT', localNum: 17, questionImg: 'physics_q17.png', optionsImg: [], correctAnswer: '23' },
+            { subject: 'Physics', type: 'NAT', localNum: 18, questionImg: 'physics_q18.png', optionsImg: [], correctAnswer: '48' },
+
+            // ==================== MATHEMATICS SUBJECT (19 TO 36) ====================
+            { subject: 'Maths', type: 'SCQ', localNum: 1, questionImg: 'maths_q1.png', optionsImg: ['maths_q1ansA.png', 'maths_q1ansB.png', 'maths_q1ansC.png', 'maths_q1ansD.png'], correctAnswer: 'C' },
+            { subject: 'Maths', type: 'SCQ', localNum: 2, questionImg: 'maths_q2.png', optionsImg: ['maths_q2ansA.png', 'maths_q2ansB.png', 'maths_q2ansC.png', 'maths_q2ansD.png'], correctAnswer: 'B' },
+            { subject: 'Maths', type: 'SCQ', localNum: 3, questionImg: 'maths_q3.png', optionsImg: ['maths_q3ansA.png', 'maths_q3ansB.png', 'maths_q3ansC.png', 'maths_q3ansD.png'], correctAnswer: 'B' },
+            { subject: 'Maths', type: 'SCQ', localNum: 4, questionImg: 'maths_q4.png', optionsImg: ['maths_q4ansA.png', 'maths_q4ansB.png', 'maths_q4ansC.png', 'maths_q4ansD.png'], correctAnswer: 'C' },
+            { subject: 'Maths', type: 'SCQ', localNum: 5, questionImg: 'maths_q5.png', optionsImg: ['maths_q5ansA.png', 'maths_q5ansB.png', 'maths_q5ansC.png', 'maths_q5ansD.png'], correctAnswer: 'B' },
+            { subject: 'Maths', type: 'SCQ', localNum: 6, questionImg: 'maths_q6.png', optionsImg: ['maths_q6ansA.png', 'maths_q6ansB.png', 'maths_q6ansC.png', 'maths_q6ansD.png'], correctAnswer: 'C' },
+
+            { subject: 'Maths', type: 'MCQ', localNum: 7, questionImg: 'maths_q7.png', optionsImg: ['maths_q7ansA.png', 'maths_q7ansB.png', 'maths_q7ansC.png', 'maths_q7ansD.png'], correctAnswer: ['C', 'D'] },
+            { subject: 'Maths', type: 'MCQ', localNum: 8, questionImg: 'maths_q8.png', optionsImg: ['maths_q8ansA.png', 'maths_q8ansB.png', 'maths_q8ansC.png', 'maths_q8ansD.png'], correctAnswer: ['A', 'C'] },
+            { subject: 'Maths', type: 'MCQ', localNum: 9, questionImg: 'maths_q9.png', optionsImg: ['maths_q9ansA.png', 'maths_q9ansB.png', 'maths_q9ansC.png', 'maths_q9ansD.png'], correctAnswer: ['A', 'B'] },
+            { subject: 'Maths', type: 'MCQ', localNum: 10, questionImg: 'maths_q10.png', optionsImg: ['maths_q10ansA.png', 'maths_q10ansB.png', 'maths_q10ansC.png', 'maths_q10ansD.png'], correctAnswer: ['A', 'B', 'C'] },
+            { subject: 'Maths', type: 'MCQ', localNum: 11, questionImg: 'maths_q11.png', optionsImg: ['maths_q11ansA.png', 'maths_q11ansB.png', 'maths_q11ansC.png', 'maths_q11ansD.png'], correctAnswer: ['A', 'B', 'C'] },
+            { subject: 'Maths', type: 'MCQ', localNum: 12, questionImg: 'maths_q12.png', optionsImg: ['maths_q12ansA.png', 'maths_q12ansB.png', 'maths_q12ansC.png', 'maths_q12ansD.png'], correctAnswer: ['A', 'C'] },
+
+            { subject: 'Maths', type: 'NAT', localNum: 13, questionImg: 'maths_q13.png', optionsImg: [], correctAnswer: '3' },
+            { subject: 'Maths', type: 'NAT', localNum: 14, questionImg: 'maths_q14.png', optionsImg: [], correctAnswer: '60' },
+            { subject: 'Maths', type: 'NAT', localNum: 15, questionImg: 'maths_q15.png', optionsImg: [], correctAnswer: '14' },
+            { subject: 'Maths', type: 'NAT', localNum: 16, questionImg: 'maths_q16.png', optionsImg: [], correctAnswer: 'RANGE_1.74_1.77' }, 
+            { subject: 'Maths', type: 'NAT', localNum: 17, questionImg: 'maths_q17.png', optionsImg: [], correctAnswer: '325' },
+            { subject: 'Maths', type: 'NAT', localNum: 18, questionImg: 'maths_q18.png', optionsImg: [], correctAnswer: '10' }
+        ];
+
+        let currentIdx = 0;
+        let totalSeconds = 3 * 60 * 60;
+        let candidateName = "Anonymous";
+        let countdownInterval;
+        
+        // Anti-Cheating & Integrity State Variables
+        let tabViolations = 0;
+        let isExamActive = false;
+
+        testQuestions.forEach(q => {
+            q.status = 'not-visited';
+            q.userAnswer = q.type === 'MCQ' ? [] : '';
+        });
+
+        function startExam() {
+            const inputName = document.getElementById('student-name').value.trim();
+            if(!inputName) {
+                alert("Please enter your name to begin.");
+                return;
+            }
+            
+            // Single Response Verification check
+            if (localStorage.getItem(`submitted_${inputName}`)) {
+                alert("Error: A submission under this candidate name has already been recorded. Multiple responses are not allowed.");
+                return;
+            }
+
+            candidateName = inputName;
+            document.getElementById('login-screen').style.display = 'none';
+            
+            // Trigger browser native Fullscreen framework layout operations
+            requestFullscreenMode();
+            
+            isExamActive = true;
+
+            const timerElement = document.getElementById('timer');
+            countdownInterval = setInterval(() => {
+                if (totalSeconds <= 0) {
+                    clearInterval(countdownInterval);
+                    finalSubmit();
+                } else {
+                    totalSeconds--;
+                    let hrs = Math.floor(totalSeconds / 3600);
+                    let mins = Math.floor((totalSeconds % 3600) / 60);
+                    let secs = totalSeconds % 60;
+                    timerElement.innerText = `Time Left: ${String(hrs).padStart(2,'0')}:${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
+                }
+            }, 1000);
+
+            loadQuestion(0);
+        }
+
+        // Native System Fullscreen invocation handler rules
+        function requestFullscreenMode() {
+            const docEl = document.documentElement;
+            if (docEl.requestFullscreen) {
+                docEl.requestFullscreen();
+            } else if (docEl.mozRequestFullScreen) { // Firefox
+                docEl.mozRequestFullScreen();
+            } else if (docEl.webkitRequestFullscreen) { // Chrome, Safari and Opera
+                docEl.webkitRequestFullscreen();
+            } else if (docEl.msRequestFullscreen) { // IE/Edge
+                docEl.msRequestFullscreen();
+            }
+        }
+
+        /* --- SECURITY FRAMEWORK: Tab Switch and Fullscreen Monitoring Engine --- */
+        function triggerViolationHandler(reason) {
+            if (!isExamActive) return;
+            
+            tabViolations++;
+            if (tabViolations > 3) {
+                isExamActive = false;
+                clearInterval(countdownInterval);
+                alert("CRITICAL VIOLATION: You have exited full-screen mode or switched window focus more than 3 times. Your exam session is being forcefully locked and submitted.");
+                forceDisableAndSubmit();
+            } else {
+                alert(`WARNING [Attempt ${tabViolations}/3]: You are not allowed to escape full-screen view or change tabs. Continuing will invalidate your test metrics! Please return to full screen immediately.`);
+                requestFullscreenMode();
+            }
+        }
+
+        // Hook Window Visibility state patterns (Tab Switching / Minimizing)
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden && isExamActive) {
+                triggerViolationHandler("Tab Switch");
+            }
+        });
+
+        // Hook Fullscreen Break operations natively
+        document.addEventListener('fullscreenchange', handleFullscreenVerification);
+        document.addEventListener('webkitfullscreenchange', handleFullscreenVerification);
+        document.addEventListener('mozfullscreenchange', handleFullscreenVerification);
+        document.addEventListener('MSFullscreenChange', handleFullscreenVerification);
+
+        function handleFullscreenVerification() {
+            const isFs = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
+            if (!isFs && isExamActive) {
+                triggerViolationHandler("Exited Fullscreen");
+            }
+        }
+
+        function forceDisableAndSubmit() {
+            isExamActive = false;
+            // Intercept standard data structures and skip straight to system locked output card rendering
+            localStorage.setItem(`submitted_${candidateName}`, "true");
+            compileReportLayout("TERMINATED - EXCEEDED MAXIMUM TAB SWITCH ATTEMPTS");
+        }
+
+        function loadQuestion(index) {
+            if(testQuestions[currentIdx].status === 'not-visited') {
+                testQuestions[currentIdx].status = 'not-answered';
+            }
+
+            currentIdx = index;
+            const q = testQuestions[index];
+            
+            document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+            const activeTab = document.querySelector(`.id-tab-${q.subject}`);
+            if(activeTab) activeTab.classList.add('active');
+
+            let sectionLabel = q.type === 'SCQ' ? 'Single Correct Option' : (q.type === 'MCQ' ? 'Multiple Correct Options' : 'Numerical Answer Type');
+            document.getElementById('section-title').innerText = `${q.subject} - ${sectionLabel}`;
+            document.getElementById('question-info').innerText = `Question No. ${q.localNum}`;
+            document.getElementById('q-img').src = q.questionImg;
+
+            const optionsBlock = document.getElementById('options-block');
+            optionsBlock.innerHTML = '';
+
+            if (q.type === 'SCQ') {
+                ['A', 'B', 'C', 'D'].forEach((opt, idx) => {
+                    optionsBlock.innerHTML += `
+                        <div class="option-item">
+                            <input type="radio" name="scq-opt" value="${opt}" id="opt-${opt}" ${q.userAnswer === opt ? 'checked' : ''}>
+                            <label style="font-weight:bold;">(${opt})</label>
+                            <img src="${q.optionsImg[idx]}" class="option-img" alt="Option ${opt}">
+                        </div>`;
+                });
+            } else if (q.type === 'MCQ') {
+                ['A', 'B', 'C', 'D'].forEach((opt, idx) => {
+                    optionsBlock.innerHTML += `
+                        <div class="option-item">
+                            <input type="checkbox" name="mcq-opt" value="${opt}" id="opt-${opt}" ${q.userAnswer.includes(opt) ? 'checked' : ''}>
+                            <label style="font-weight:bold;">(${opt})</label>
+                            <img src="${q.optionsImg[idx]}" class="option-img" alt="Option ${opt}">
+                        </div>`;
+                });
+            } else if (q.type === 'NAT') {
+                optionsBlock.innerHTML = `
+                    <div class="option-item">
+                        <label style="margin-right:10px; font-weight:bold;">Enter Answer Value:</label>
+                        <input type="number" step="any" class="numerical-input" id="nat-input" value="${q.userAnswer}">
+                    </div>`;
+            }
+
+            renderPalette();
+        }
+
+        function renderPalette() {
+            const container = document.getElementById('palette-box');
+            container.innerHTML = '';
+            const currentSub = testQuestions[currentIdx].subject;
+
+            testQuestions.forEach((q, idx) => {
+                if (q.subject !== currentSub) return;
+
+                const btn = document.createElement('div');
+                btn.className = `p-btn p-${q.status}`;
+                btn.innerText = q.localNum;
+                btn.onclick = () => loadQuestion(idx);
+                if(idx === currentIdx) {
+                    btn.style.border = "2px solid #2c3e50";
+                }
+                container.appendChild(btn);
+            });
+        }
+
+        function switchSubject(subName) {
+            const index = testQuestions.findIndex(q => q.subject === subName);
+            if(index !== -1) loadQuestion(index);
+        }
+
+        function captureInput() {
+            const q = testQuestions[currentIdx];
+            if (q.type === 'SCQ') {
+                const checked = document.querySelector('input[name="scq-opt"]:checked');
+                return checked ? checked.value : '';
+            } else if (q.type === 'MCQ') {
+                const selected = [];
+                document.querySelectorAll('input[name="mcq-opt"]:checked').forEach(cb => selected.push(cb.value));
+                return selected;
+            } else if (q.type === 'NAT') {
+                return document.getElementById('nat-input').value.trim();
+            }
+        }
+
+        function saveAndNext() {
+            const ans = captureInput();
+            if (ans && ans.length !== 0) {
+                testQuestions[currentIdx].userAnswer = ans;
+                testQuestions[currentIdx].status = 'answered';
+            } else {
+                testQuestions[currentIdx].userAnswer = testQuestions[currentIdx].type === 'MCQ' ? [] : '';
+                testQuestions[currentIdx].status = 'not-answered';
+            }
+            goToNext();
+        }
+
+        function markForReview() {
+            const ans = captureInput();
+            if (ans && ans.length !== 0) {
+                testQuestions[currentIdx].userAnswer = ans;
+                testQuestions[currentIdx].status = 'marked-answered';
+            } else {
+                testQuestions[currentIdx].userAnswer = testQuestions[currentIdx].type === 'MCQ' ? [] : '';
+                testQuestions[currentIdx].status = 'marked';
+            }
+            goToNext();
+        }
+
+        function clearResponse() {
+            testQuestions[currentIdx].userAnswer = testQuestions[currentIdx].type === 'MCQ' ? [] : '';
+            testQuestions[currentIdx].status = 'not-answered';
+            loadQuestion(currentIdx);
+        }
+
+        function goToNext() {
+            const currentSub = testQuestions[currentIdx].subject;
+            let nextIdx = -1;
+            for(let i = currentIdx + 1; i < testQuestions.length; i++) {
+                if(testQuestions[i].subject === currentSub) {
+                    nextIdx = i;
+                    break;
+                }
+            }
+            
+            if (nextIdx !== -1) {
+                loadQuestion(nextIdx);
+            } else {
+                renderPalette();
+            }
+        }
+
+        let textBackupReport = "";
+
+        function finalSubmit() {
+            if(confirm("Are you sure you want to finalize your answers and finish the examination?")) {
+                isExamActive = false;
+                clearInterval(countdownInterval);
+                
+                // Set anti-cheating tracking entry block item flag
+                localStorage.setItem(`submitted_${candidateName}`, "true");
+                
+                // Exit native screen runtime bounds
+                if (document.exitFullscreen) { document.exitFullscreen(); }
+                
+                compileReportLayout("Active Complete");
+            }
+        }
+
+        function compileReportLayout(customHeadlineStatus) {
+            let grandTotal = 0;
+            let attemptedCount = 0;
+            let correctCount = 0;
+            let wrongCount = 0;
+            let partialCount = 0;
+            
+            let detailedHTML = '';
+            
+            textBackupReport = `=========================================\r\n`;
+            textBackupReport += `JEE ADVANCED PERFORMANCE MASTER MATRIX REPORT\r\n`;
+            textBackupReport += `=========================================\r\n`;
+            textBackupReport += `Candidate Name: ${candidateName}\r\n`;
+            textBackupReport += `Status: ${customHeadlineStatus}\r\n\r\n`;
+
+            testQuestions.forEach((q, idx) => {
+                let marksForThisQ = 0;
+                let evaluationStatus = '';
+                let textStatus = 'Unattempted'; 
+                
+                let displaysUserAns = (q.type === 'MCQ') ? (q.userAnswer.length > 0 ? q.userAnswer.join(', ') : 'None') : (q.userAnswer || 'None');
+                let displaysCorrectAns = (q.correctAnswer === 'RANGE_1.74_1.77') ? '1.74 to 1.78' : ((q.type === 'MCQ') ? q.correctAnswer.join(', ') : q.correctAnswer);
+
+                if (q.status === 'answered' || q.status === 'marked-answered') {
+                    attemptedCount++;
+
+                    if (q.type === 'SCQ') {
+                        if (q.userAnswer === q.correctAnswer) {
+                            marksForThisQ = 4;
+                            evaluationStatus = '<span class="text-correct">Correct (+4)</span>';
+                            textStatus = 'Correct';
+                            correctCount++;
+                        } else {
+                            marksForThisQ = 0;
+                            evaluationStatus = '<span class="text-wrong">Incorrect (0)</span>';
+                            textStatus = 'Incorrect';
+                            wrongCount++;
+                        }
+                    } 
+                    else if (q.type === 'NAT') {
+                        let isCorrectNAT = false;
+                        
+                        if(q.correctAnswer === 'RANGE_1.74_1.77') {
+                            let val = parseFloat(q.userAnswer);
+                            if(!isNaN(val) && val >= 1.74 && val <= 1.78) {
+                                isCorrectNAT = true;
+                            }
+                        } else {
+                            if (parseFloat(q.userAnswer) === parseFloat(q.correctAnswer)) {
+                                isCorrectNAT = true;
+                            }
+                        }
+
+                        if (isCorrectNAT) {
+                            marksForThisQ = 4;
+                            evaluationStatus = '<span class="text-correct">Correct (+4)</span>';
+                            textStatus = 'Correct';
+                            correctCount++;
+                        } else {
+                            marksForThisQ = 0;
+                            evaluationStatus = '<span class="text-wrong">Incorrect (0)</span>';
+                            textStatus = 'Incorrect';
+                            wrongCount++;
+                        }
+                    } 
+                    else if (q.type === 'MCQ') {
+                        const userArr = q.userAnswer;
+                        const correctArr = q.correctAnswer;
+                        let incorrectSelection = userArr.some(opt => !correctArr.includes(opt));
+                        
+                        if (incorrectSelection) {
+                            marksForThisQ = -2;
+                            evaluationStatus = '<span class="text-wrong">Incorrect (-2)</span>';
+                            textStatus = 'Incorrect';
+                            wrongCount++;
+                        } else if (userArr.length === correctArr.length) {
+                            marksForThisQ = 4;
+                            evaluationStatus = '<span class="text-correct">Perfect Match (+4)</span>';
+                            textStatus = 'Correct';
+                            correctCount++;
+                        } else if (userArr.length > 0 && userArr.length < correctArr.length) {
+                            marksForThisQ = userArr.length;
+                            evaluationStatus = `<span class="text-partial">Partial Correct (+${userArr.length})</span>`;
+                            textStatus = 'Partial Correct';
+                            partialCount++;
+                        }
+                    }
+                } else {
+                    evaluationStatus = '<span class="text-unattempted">Unattempted (0)</span>';
+                }
+
+                grandTotal += marksForThisQ;
+
+                detailedHTML += `
+                    <tr>
+                        <td><strong>${q.subject} - Q${q.localNum}</strong> (${q.type})</td>
+                        <td>${displaysUserAns}</td>
+                        <td><strong>${displaysCorrectAns}</strong></td>
+                        <td>${evaluationStatus}</td>
+                        <td><strong>${marksForThisQ}</strong></td>
+                    </tr>`;
+                
+                textBackupReport += `${q.subject} - Q${q.localNum} (${q.type}) -> Response: ${displaysUserAns} | Correct Key: ${displaysCorrectAns} | Evaluation: ${textStatus} | Marks: ${marksForThisQ}\r\n`;
+            });
+
+            textBackupReport += `\r\n-----------------------------------------\r\n`;
+            textBackupReport += `SUMMARY METRICS\r\n`;
+            textBackupReport += `-----------------------------------------\r\n`;
+            textBackupReport += `Total Score: ${grandTotal} Marks\r\n`;
+            textBackupReport += `Total Attempted: ${attemptedCount} / ${testQuestions.length}\r\n`;
+
+            document.getElementById('timer').innerText = "Exam Completed";
+            document.body.style.overflowY = "auto";
+            document.body.innerHTML = `
+                <div class="report-wrapper">
+                    <h2 style="text-align: center; color: #e74c3c; margin-bottom: 5px;">JEE ADVANCE TEST 1 REPORT</h2>
+                    <h4 style="text-align: center; margin-top:0; color:#7f8c8d;">Session Status: ${customHeadlineStatus}</h4>
+                    <p style="text-align: center; color: #7f8c8d; margin-top: 0;">Candidate Evaluation Sheet for <strong>${candidateName}</strong></p>
+                    
+                    <table class="stats-table">
+                        <thead>
+                            <tr>
+                                <th>Total Questions</th>
+                                <th>Attempted</th>
+                                <th>Fully Correct</th>
+                                <th>Partially Correct</th>
+                                <th>Incorrect</th>
+                                <th>Final Score</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>${testQuestions.length}</td>
+                                <td>${attemptedCount}</td>
+                                <td>${correctCount}</td>
+                                <td>${partialCount}</td>
+                                <td>${wrongCount}</td>
+                                <td><strong>${grandTotal}</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h3 style="margin-top:30px; color:#2c3e50;">Detailed Question Breakdown Table</h3>
+                    <table class="breakdown-table">
+                        <thead>
+                            <tr>
+                                <th>Question Identification</th>
+                                <th>Your Marked Response</th>
+                                <th>Correct Master Key</th>
+                                <th>Evaluation Status</th>
+                                <th>Marks Obtained</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${detailedHTML}
+                        </tbody>
+                    </table>
+                </div>`;
+        }
+    </script>
+</body>
+</html>
